@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer base {
@@ -7,29 +7,43 @@
   }
 
   :root {
-    --color-bg: #FAFAF7;
-    --color-text: #0A0A0A;
-    --color-muted: #6B6B6B;
-    --color-border: #E5E5E5;
+    --color-bg: #000000;
+    --color-text: #FAFAFA;
+    --color-muted: #8A8A8A;
+    --color-border: #2A2A2A;
+    --color-divider: #1A1A1A;
     --color-accent: #F5C518;
-    --color-accent-hover: #E3B316;
-    --font-display: 'Instrument Serif', Georgia, serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
+    --color-accent-hover: #E5B614;
+    --color-num: #2A2A2A;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
   html {
-    background: var(--color-bg);
+    background: #000000;
     color: var(--color-text);
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Barely-perceptible radial depth — lighter at center-top, pure black at edges */
+  body {
+    background-color: #000000;
+    background-image: radial-gradient(ellipse 100% 60% at 50% 0%, #0A0A0A 0%, #000000 65%);
+    background-attachment: fixed;
+    min-height: 100dvh;
+  }
+
+  ::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
   }
 }
 
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -38,11 +52,11 @@
 }
 
 .animate-fade-up {
-  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fade-up 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.delay-1 { animation-delay: 0.05s; }
-.delay-2 { animation-delay: 0.12s; }
-.delay-3 { animation-delay: 0.2s; }
-.delay-4 { animation-delay: 0.3s; }
-.delay-5 { animation-delay: 0.42s; }
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.20s; }
+.delay-3 { animation-delay: 0.34s; }
+.delay-4 { animation-delay: 0.50s; }
+.delay-5 { animation-delay: 0.68s; }

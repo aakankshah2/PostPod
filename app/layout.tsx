@@ -4,7 +4,7 @@ import { ConvexClientProvider } from "./ConvexClientProvider";
 
 const title = "PostPod — Turn every podcast episode into a week of content";
 const description =
-  "Upload once. Timestamps, pull quotes, a LinkedIn post, YouTube chapters, three click-ready titles — in minutes.";
+  "Upload once. Get timestamps, pull quotes, a LinkedIn post, YouTube chapters, and three click-tested titles — in minutes.";
 
 export const metadata: Metadata = {
   title,
@@ -14,11 +14,20 @@ export const metadata: Metadata = {
     description,
     type: "website",
     siteName: "PostPod",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: title,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
+    images: ["/opengraph-image"],
   },
 };
 

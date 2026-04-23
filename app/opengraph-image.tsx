@@ -10,83 +10,83 @@ export default async function Image() {
     (
       <div
         style={{
-          background: "#FAFAF7",
+          background: "#000000",
           width: "100%",
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "80px",
+          padding: "60px",
           fontFamily: "system-ui, sans-serif",
+          position: "relative",
         }}
       >
-        {/* Wordmark */}
+        {/* Wordmark — top left */}
         <div
           style={{
-            fontSize: 18,
-            fontWeight: 700,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color: "#0A0A0A",
-            marginBottom: 60,
             display: "flex",
+            fontSize: 22,
+            fontWeight: 700,
+            color: "#FAFAFA",
+            letterSpacing: "-0.02em",
+            lineHeight: 1,
+            marginBottom: "auto",
           }}
         >
-          <span>POST</span>
+          <span>Post</span>
           <span style={{ position: "relative", display: "flex" }}>
-            POD
+            Pod
             <span
               style={{
                 position: "absolute",
                 left: 0,
-                bottom: -4,
+                bottom: 0,
                 width: "100%",
-                height: 3,
+                height: 2.5,
                 backgroundColor: "#F5C518",
-                borderRadius: 2,
               }}
             />
           </span>
         </div>
 
-        {/* Headline */}
+        {/* Headline — centered vertically */}
         <div
           style={{
-            fontSize: 64,
-            fontWeight: 700,
-            textAlign: "center",
-            lineHeight: 1.08,
-            color: "#0A0A0A",
-            maxWidth: 860,
-            letterSpacing: "-0.02em",
+            display: "flex",
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "flex-start",
           }}
         >
-          Turn every podcast episode into a week of content.
+          <div
+            style={{
+              fontSize: 76,
+              fontWeight: 700,
+              color: "#FAFAFA",
+              lineHeight: 1.0,
+              letterSpacing: "-0.03em",
+              maxWidth: 900,
+              display: "flex",
+              flexWrap: "wrap",
+            }}
+          >
+            Turn every podcast episode into a&nbsp;
+            <span style={{ color: "#F5C518" }}>week</span>
+            &nbsp;of content.
+          </div>
         </div>
 
-        {/* Yellow accent bar */}
+        {/* Bottom label */}
         <div
           style={{
-            width: 48,
-            height: 3,
-            backgroundColor: "#F5C518",
-            marginTop: 56,
-            borderRadius: 2,
-          }}
-        />
-
-        {/* Subline */}
-        <div
-          style={{
-            marginTop: 28,
-            fontSize: 22,
-            color: "#6B6B6B",
-            fontWeight: 300,
-            textAlign: "center",
+            display: "flex",
+            fontSize: 16,
+            color: "#8A8A8A",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            fontWeight: 500,
           }}
         >
-          Upload once. Publish everywhere.
+          Coming 2026
         </div>
       </div>
     ),

@@ -6,27 +6,31 @@ import { useState, FormEvent } from "react";
 
 type FormState = "idle" | "loading" | "success" | "duplicate" | "error";
 
-const S = {
-  label: {
-    fontSize: "0.6875rem",
-    fontWeight: 600,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase" as const,
-    color: "var(--color-muted)",
-  },
-} as const;
+/* ─── Shared token ─────────────────────────────────────────── */
+const sectionLabel: React.CSSProperties = {
+  fontSize: "12px",
+  fontWeight: 600,
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  color: "var(--color-muted)",
+  margin: 0,
+};
 
+/* ─── Wordmark ─────────────────────────────────────────────── */
 function Wordmark() {
   return (
     <div
-      className="animate-fade-up"
       style={{
-        fontFamily: "var(--font-body)",
+        position: "absolute",
+        top: "32px",
+        left: "clamp(24px, 4vw, 48px)",
+        fontFamily: "var(--font-sans)",
         fontWeight: 600,
-        fontSize: "0.875rem",
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
+        fontSize: "20px",
+        letterSpacing: "-0.02em",
         color: "var(--color-text)",
+        lineHeight: 1,
+        userSelect: "none",
       }}
     >
       Post
@@ -36,11 +40,10 @@ function Wordmark() {
           style={{
             position: "absolute",
             left: 0,
-            bottom: "-3px",
+            bottom: 0,
             width: "100%",
             height: "2px",
             backgroundColor: "var(--color-accent)",
-            borderRadius: "1px",
           }}
         />
       </span>
@@ -48,49 +51,7 @@ function Wordmark() {
   );
 }
 
-function Features() {
-  const items = [
-    {
-      label: "Timestamps & Chapters",
-      copy: "Auto-generated from your episode, ready to paste into YouTube.",
-    },
-    {
-      label: "Pull Quotes",
-      copy: "Eight shareable moments, written for Twitter and carousels.",
-    },
-    {
-      label: "Titles",
-      copy: "Three hook-tested episode names built for click-through.",
-    },
-  ];
-
-  return (
-    <ul
-      className="animate-fade-up delay-3"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "18px",
-        width: "100%",
-        maxWidth: "460px",
-        textAlign: "left",
-        listStyle: "none",
-        padding: 0,
-        margin: 0,
-      }}
-    >
-      {items.map(({ label, copy }) => (
-        <li key={label} style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-          <span style={S.label}>{label}</span>
-          <span style={{ fontSize: "0.9375rem", color: "var(--color-text)", lineHeight: 1.5 }}>
-            {copy}
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
+/* ─── Form ─────────────────────────────────────────────────── */
 function FormFields({
   onSuccess,
   onDuplicate,
@@ -122,55 +83,58 @@ function FormFields({
   return (
     <form
       onSubmit={handleSubmit}
-      style={{ display: "flex", width: "100%", gap: "10px", flexWrap: "wrap" }}
+      style={{
+        display: "flex",
+        width: "100%",
+        gap: "10px",
+        flexWrap: "wrap",
+        justifyContent: "center",
+      }}
     >
       <input
         type="email"
         required
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        placeholder="your@email.com"
+        placeholder="you@example.com"
         disabled={state === "loading"}
         style={{
-          flex: "1 1 200px",
-          padding: "12px 16px",
-          border: "1.5px solid var(--color-border)",
-          borderRadius: "8px",
-          fontSize: "0.9375rem",
-          fontFamily: "var(--font-body)",
+          flex: "1 1 220px",
+          maxWidth: "300px",
+          padding: "14px 18px",
+          border: "1px solid var(--color-border)",
+          borderRadius: "6px",
+          fontSize: "16px",
+          fontFamily: "var(--font-sans)",
           color: "var(--color-text)",
-          backgroundColor: "#fff",
+          backgroundColor: "transparent",
           outline: "none",
-          transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+          transition: "border-color 0.15s ease",
           opacity: state === "loading" ? 0.5 : 1,
         }}
-        onFocus={(e) => {
-          e.target.style.borderColor = "var(--color-accent)";
-          e.target.style.boxShadow = "0 0 0 3px rgba(245, 197, 24, 0.15)";
-        }}
-        onBlur={(e) => {
-          e.target.style.borderColor = "var(--color-border)";
-          e.target.style.boxShadow = "none";
-        }}
+        onFocus={(e) => (e.target.style.borderColor = "var(--color-accent)")}
+        onBlur={(e) => (e.target.style.borderColor = "var(--color-border)")}
       />
       <button
         type="submit"
         disabled={state === "loading"}
         style={{
           flex: "0 0 auto",
-          padding: "12px 22px",
+          padding: "14px 26px",
           backgroundColor:
-            state === "loading" ? "var(--color-accent-hover)" : "var(--color-accent)",
-          color: "#0A0A0A",
+            state === "loading"
+              ? "var(--color-accent-hover)"
+              : "var(--color-accent)",
+          color: "#000000",
           border: "none",
-          borderRadius: "8px",
-          fontSize: "0.9375rem",
+          borderRadius: "6px",
+          fontSize: "16px",
           fontWeight: 600,
-          fontFamily: "var(--font-body)",
+          fontFamily: "var(--font-sans)",
           cursor: state === "loading" ? "not-allowed" : "pointer",
           transition: "background-color 0.15s ease, transform 0.1s ease",
           whiteSpace: "nowrap",
-          letterSpacing: "0.01em",
+          letterSpacing: "-0.01em",
         }}
         onMouseEnter={(e) => {
           if (state !== "loading")
@@ -180,17 +144,22 @@ function FormFields({
           if (state !== "loading")
             e.currentTarget.style.backgroundColor = "var(--color-accent)";
         }}
-        onMouseDown={(e) => {
-          e.currentTarget.style.transform = "scale(0.98)";
-        }}
-        onMouseUp={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-        }}
+        onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.98)")}
+        onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
       >
-        {state === "loading" ? "Joining…" : "Get Early Access"}
+        {state === "loading" ? "Joining…" : "Join Waitlist"}
       </button>
+
       {state === "error" && (
-        <p style={{ width: "100%", fontSize: "0.875rem", color: "#dc2626", margin: "4px 0 0" }}>
+        <p
+          style={{
+            width: "100%",
+            fontSize: "14px",
+            color: "#ef4444",
+            margin: "4px 0 0",
+            textAlign: "center",
+          }}
+        >
           Something went wrong. Try again in a moment.
         </p>
       )}
@@ -198,6 +167,7 @@ function FormFields({
   );
 }
 
+/* ─── How it works ─────────────────────────────────────────── */
 function HowItWorks() {
   const steps = [
     {
@@ -222,11 +192,11 @@ function HowItWorks() {
       style={{
         width: "100%",
         maxWidth: "720px",
-        padding: "0 24px 88px",
         margin: "0 auto",
+        padding: "160px clamp(24px, 6vw, 48px) 0",
       }}
     >
-      <p style={{ ...S.label, margin: "0 0 52px" }}>How it works</p>
+      <p style={{ ...sectionLabel, marginBottom: "48px" }}>How it works</p>
       <ol
         style={{
           listStyle: "none",
@@ -234,42 +204,50 @@ function HowItWorks() {
           margin: 0,
           display: "flex",
           flexDirection: "column",
-          gap: "48px",
+          gap: "120px",
         }}
       >
         {steps.map(({ num, heading, body }) => (
-          <li key={num} style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <span
+          <li key={num}>
+            {/* Big number sits behind heading via negative bottom margin */}
+            <div
               style={{
-                fontSize: "0.8125rem",
-                color: "#C4C4C4",
-                letterSpacing: "0.04em",
-                marginBottom: "4px",
-                fontFamily: "var(--font-body)",
+                fontSize: "64px",
+                fontWeight: 500,
+                color: "var(--color-num)",
+                lineHeight: 1,
+                letterSpacing: "-0.04em",
+                fontFamily: "var(--font-sans)",
+                marginBottom: "-14px",
               }}
             >
               {num}
-            </span>
-            <strong
+            </div>
+            <h3
               style={{
-                fontSize: "1.125rem",
+                fontSize: "28px",
                 fontWeight: 600,
                 color: "var(--color-text)",
-                lineHeight: 1.3,
+                margin: "0 0 12px",
+                lineHeight: 1.2,
+                letterSpacing: "-0.02em",
+                fontFamily: "var(--font-sans)",
+                position: "relative",
               }}
             >
               {heading}
-            </strong>
-            <span
+            </h3>
+            <p
               style={{
-                fontSize: "0.9375rem",
+                fontSize: "18px",
                 color: "var(--color-muted)",
-                lineHeight: 1.65,
+                margin: 0,
+                lineHeight: 1.6,
                 maxWidth: "480px",
               }}
             >
               {body}
-            </span>
+            </p>
           </li>
         ))}
       </ol>
@@ -277,6 +255,7 @@ function HowItWorks() {
   );
 }
 
+/* ─── Built for ────────────────────────────────────────────── */
 function BuiltFor() {
   const lines = [
     "Podcast hosts who hate the post-production tax.",
@@ -289,28 +268,29 @@ function BuiltFor() {
       style={{
         width: "100%",
         maxWidth: "720px",
-        padding: "0 24px 96px",
         margin: "0 auto",
+        padding: "160px clamp(24px, 6vw, 48px) 0",
       }}
     >
-      <p style={{ ...S.label, margin: "0 0 24px" }}>Built for</p>
+      <p style={{ ...sectionLabel, marginBottom: "48px" }}>Built for</p>
       <ul
         style={{
           listStyle: "none",
           padding: 0,
           margin: 0,
-          borderTop: "1px solid var(--color-border)",
+          borderTop: "1px solid var(--color-divider)",
         }}
       >
         {lines.map((line) => (
           <li
             key={line}
             style={{
-              padding: "20px 0",
-              fontSize: "1rem",
+              padding: "24px 0",
+              fontSize: "20px",
               color: "var(--color-text)",
               lineHeight: 1.4,
-              borderBottom: "1px solid var(--color-border)",
+              borderBottom: "1px solid var(--color-divider)",
+              letterSpacing: "-0.01em",
             }}
           >
             {line}
@@ -321,16 +301,16 @@ function BuiltFor() {
   );
 }
 
+/* ─── Footer ───────────────────────────────────────────────── */
 function Footer() {
   return (
     <footer
       style={{
-        borderTop: "1px solid var(--color-border)",
-        padding: "28px 24px",
+        padding: "120px 24px 60px",
         textAlign: "center",
-        fontSize: "0.8125rem",
+        fontSize: "14px",
         color: "var(--color-muted)",
-        letterSpacing: "0.01em",
+        letterSpacing: "0.02em",
       }}
     >
       PostPod · Coming 2026
@@ -338,118 +318,143 @@ function Footer() {
   );
 }
 
+/* ─── Page ─────────────────────────────────────────────────── */
 export function WaitlistPage() {
-  const [formState, setFormState] = useState<"idle" | "success" | "duplicate">("idle");
+  const [formState, setFormState] = useState<"idle" | "success" | "duplicate">(
+    "idle"
+  );
 
   return (
     <>
-      {/* Hero */}
+      {/* ── Section 1: Hero ── */}
       <section
         style={{
-          paddingTop: "clamp(80px, 22vh, 180px)",
-          paddingBottom: "clamp(72px, 10vh, 104px)",
-          paddingLeft: "24px",
-          paddingRight: "24px",
+          minHeight: "100svh",
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "clamp(88px, 12vh, 120px) clamp(24px, 6vw, 48px) clamp(64px, 8vh, 96px)",
         }}
       >
+        <Wordmark />
+
         <div
           style={{
             width: "100%",
             maxWidth: "720px",
-            margin: "0 auto",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             textAlign: "center",
-            gap: "36px",
           }}
         >
-          <Wordmark />
-
-          <div
+          {/* Display headline */}
+          <h1
             className="animate-fade-up delay-1"
-            style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "center" }}
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontSize: "clamp(48px, 8vw, 96px)",
+              fontWeight: 600,
+              lineHeight: 0.95,
+              letterSpacing: "-0.03em",
+              color: "var(--color-text)",
+              margin: "0 0 48px",
+            }}
           >
-            <h1
-              style={{
-                fontFamily: "var(--font-display)",
-                fontStyle: "italic",
-                fontSize: "clamp(2.25rem, 6vw, 3.75rem)",
-                fontWeight: 400,
-                lineHeight: 1.1,
-                letterSpacing: "-0.01em",
-                color: "var(--color-text)",
-                margin: 0,
-                maxWidth: "600px",
-              }}
-            >
-              Turn every podcast episode into a week of content.
-            </h1>
+            Turn every podcast episode into a{" "}
+            <span style={{ color: "var(--color-accent)" }}>week</span>
+            {" "}of content.
+          </h1>
 
-            <p
-              className="animate-fade-up delay-2"
-              style={{
-                fontSize: "1.0625rem",
-                color: "var(--color-muted)",
-                lineHeight: 1.6,
-                margin: 0,
-                maxWidth: "420px",
-                fontWeight: 300,
-              }}
-            >
-              Upload once. Timestamps, pull quotes, a LinkedIn post, YouTube
-              chapters, three click-ready titles — in minutes.
-            </p>
-          </div>
+          {/* Subheadline */}
+          <p
+            className="animate-fade-up delay-2"
+            style={{
+              fontSize: "20px",
+              fontWeight: 400,
+              color: "var(--color-muted)",
+              lineHeight: 1.5,
+              margin: "0 0 48px",
+              maxWidth: "560px",
+            }}
+          >
+            Upload your episode once. Get timestamps, pull quotes, a LinkedIn
+            post, YouTube chapters, and three click-tested titles — in minutes.
+          </p>
 
-          <Features />
-
-          {formState === "success" ? (
-            <p
-              className="animate-fade-up"
-              style={{ fontSize: "1rem", color: "var(--color-text)", fontWeight: 500, margin: 0 }}
-            >
-              You&apos;re on the list. We&apos;ll email you when PostPod opens up.
-            </p>
-          ) : (
-            <div
-              className="animate-fade-up delay-4"
-              style={{
-                width: "100%",
-                maxWidth: "480px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "12px",
-              }}
-            >
-              <FormFields
-                onSuccess={() => setFormState("success")}
-                onDuplicate={() => setFormState("duplicate")}
-              />
-
-              {formState === "duplicate" && (
-                <p style={{ fontSize: "0.875rem", color: "var(--color-muted)", margin: 0 }}>
-                  You&apos;re already on the list — we&apos;ll email you at launch.
-                </p>
-              )}
-
-              <p
-                className="animate-fade-up delay-5"
+          {/* Form area */}
+          <div
+            className="animate-fade-up delay-3"
+            style={{
+              width: "100%",
+              maxWidth: "560px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            {formState === "success" ? (
+              <div
                 style={{
-                  fontSize: "0.8125rem",
-                  color: "var(--color-muted)",
-                  margin: 0,
-                  letterSpacing: "0.01em",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "10px",
+                  fontSize: "20px",
+                  color: "var(--color-text)",
+                  textAlign: "left",
                 }}
               >
-                No spam. One email when we launch.
-              </p>
-            </div>
-          )}
+                <span
+                  style={{
+                    color: "var(--color-accent)",
+                    lineHeight: 1.4,
+                    flexShrink: 0,
+                  }}
+                >
+                  •
+                </span>
+                <span>
+                  You&apos;re on the list. We&apos;ll email you when PostPod opens up.
+                </span>
+              </div>
+            ) : (
+              <>
+                <FormFields
+                  onSuccess={() => setFormState("success")}
+                  onDuplicate={() => setFormState("duplicate")}
+                />
+
+                {formState === "duplicate" && (
+                  <p
+                    style={{
+                      fontSize: "14px",
+                      color: "var(--color-muted)",
+                      margin: 0,
+                    }}
+                  >
+                    You&apos;re already on the list — we&apos;ll email you at launch.
+                  </p>
+                )}
+
+                <p
+                  className="animate-fade-up delay-4"
+                  style={{
+                    fontSize: "14px",
+                    color: "var(--color-muted)",
+                    margin: 0,
+                  }}
+                >
+                  No spam. One email when we launch.
+                </p>
+              </>
+            )}
+          </div>
         </div>
       </section>
 
+      {/* ── Sections 2–4 ── */}
       <HowItWorks />
       <BuiltFor />
       <Footer />
