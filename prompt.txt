@@ -1,0 +1,73 @@
+Fetch this design file, read its readme, and implement the relevant aspects of the design. https://api.anthropic.com/v1/design/h/cofgQg3g0NxK2CFQoniY0Q?open_file=PostPod.html
+
+Implement: Build PostPod as a fully working production web app, not a static HTML replica.
+
+STACK:
+- Next.js 15 (App Router) + TypeScript
+- Tailwind CSS for styling
+- Convex for database, auth, file storage, and serverless backend functions
+- Razorpay for payments (INR, one-time credit packs, UPI + cards + netbanking)
+- Whisper via Replicate for audio transcription
+- Anthropic Claude API (model: claude-opus-4-7) for generating podcast assets from transcripts
+- Deploy target: Vercel
+
+DESIGN:
+Match PostPod.html exactly — black background, yellow accent, typography, component styling, ghost "postpod" background text, badge pills. Extract design tokens (colors, typography, spacing, radii) into a tokens file. Do not hardcode colors. Create DESIGN.md documenting the system.
+
+BUILD ORDER — pause after each step for my review:
+
+1. Project scaffold + landing page
+   - Next.js + TS + Tailwind setup
+   - Convex project initialized (npx convex dev)
+   - Exact replica of PostPod.html as the landing page
+   - Convex auth setup (email magic link via Convex Auth)
+   - .env.local with placeholders for all keys
+
+2. Upload flow
+   - MP3 upload up to 500MB via Convex file storage (use Convex's generateUploadUrl for direct client upload)
+   - Paste or .txt upload for transcripts as alternative
+   - Episode title input field
+   - Create episode record in Convex with status="uploaded"
+
+3. Transcription + processing screen
+   - Convex action calls Replicate API (openai/whisper model) with the uploaded audio URL
+   - Use Replicate's webhook pattern or poll for completion
+   - Processing UI uses Convex's real-time subscriptions
+   - On complete, store transcript in episode doc, status="transcribed"
+
+4. Asset generation
+   - Convex action calls Anthropic API with transcript
+   - Enforce typed JSON schema: titles (5), chapters (timestamp, title, summary), pullQuotes (3-5), linkedInPost, showNotes
+   - Store assets in Convex, status="complete"
+
+5. Results screen
+   - Display all generated assets in cards
+   - Copy-to-clipboard button per asset
+   - Download all as .txt option
+
+6. Paywall + Razorpay payments
+   - "1 free episode left" badge reflects real credit count
+   - Paywall screen when credits = 0 — "Unlock for 299" matching design
+   - Two credit packs: 299 INR / 1 episode, 2499 INR / 10 episodes
+   - Use Razorpay Checkout (client-side SDK), create order via Convex action
+   - Verify signature server-side using HMAC SHA256
+   - Only grant credits after signature verification succeeds
+   - Razorpay webhook at /api/webhooks/razorpay as backup
+
+7. Credit gating
+   - Block generation when credits = 0, redirect to paywall
+   - Decrement credits on successful asset generation only
+   - Show toast / in-app notification when assets ready (no custom email for v1)
+
+CONVEX SCHEMA:
+- users: email, creditsRemaining, createdAt
+- episodes: userId, title, audioStorageId, transcript, status, createdAt
+- assets: episodeId, titles, chapters, pullQuotes, linkedInPost, showNotes, createdAt
+- transactions: userId, razorpayOrderId, razorpayPaymentId, creditsPurchased, amountInr, status, createdAt
+
+DELIVERABLES AFTER SCAFFOLD:
+- README.md with setup instructions and every env var listed
+- DESIGN.md with the token system
+- List all env vars I need to provide before you start coding
+
+Begin with Step 1. Pause before Step 2.

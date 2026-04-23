@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 
-const title = "PostPod — Turn every podcast episode into a week of content";
+const title = "PostPod — Turn a raw episode into publish-ready assets";
 const description =
-  "Upload once. Get timestamps, pull quotes, a LinkedIn post, YouTube chapters, and three click-tested titles — in minutes.";
+  "Drop your MP3 or transcript. In under a minute, PostPod writes your titles, chapters, pull quotes, LinkedIn post, and timestamps.";
 
 export const metadata: Metadata = {
   title,
@@ -14,14 +15,7 @@ export const metadata: Metadata = {
     description,
     type: "website",
     siteName: "PostPod",
-    images: [
-      {
-        url: "/opengraph-image",
-        width: 1200,
-        height: 630,
-        alt: title,
-      },
-    ],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: title }],
   },
   twitter: {
     card: "summary_large_image",
@@ -31,16 +25,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
-      </body>
-    </html>
+    <ConvexAuthNextjsServerProvider>
+      <html lang="en">
+        <body>
+          <ConvexClientProvider>{children}</ConvexClientProvider>
+        </body>
+      </html>
+    </ConvexAuthNextjsServerProvider>
   );
 }

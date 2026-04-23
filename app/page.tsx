@@ -1,5 +1,5 @@
-import { WaitlistPage } from "@/components/WaitlistPage";
+import { PostPodApp } from "@/components/PostPodApp";
 
 export default function Home() {
-  return <WaitlistPage />;
+  return <PostPodApp />;
 }

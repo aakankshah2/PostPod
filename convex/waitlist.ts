@@ -13,8 +13,8 @@ export const addToWaitlist = mutation({
 
     const existing = await ctx.db
       .query("waitlist")
-      .filter((q) => q.eq(q.field("email"), normalized))
-      .first();
+      .withIndex("by_email", (q) => q.eq("email", normalized))
+      .unique();
 
     if (existing) {
       throw new Error("ALREADY_ON_LIST");
