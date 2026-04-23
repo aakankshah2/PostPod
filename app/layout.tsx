@@ -2,10 +2,24 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 
+const title = "PostPod — Turn every podcast episode into a week of content";
+const description =
+  "Upload once. Timestamps, pull quotes, a LinkedIn post, YouTube chapters, three click-ready titles — in minutes.";
+
 export const metadata: Metadata = {
-  title: "PostPod — Turn every podcast into a week of content",
-  description:
-    "Upload once. Get timestamps, pull quotes, a LinkedIn post, YouTube chapters, and three click-worthy titles — in minutes.",
+  title,
+  description,
+  openGraph: {
+    title,
+    description,
+    type: "website",
+    siteName: "PostPod",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
 };
 
 export default function RootLayout({
