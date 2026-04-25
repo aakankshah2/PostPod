@@ -145,7 +145,7 @@ export function UploadScreen({ onSubmit }: Props) {
     ? Math.round((uploadProgress.loaded / uploadProgress.total) * 100)
     : 0;
 
-  const mp3Label = mp3 ? `${mp3.name} · ${fmtMB(mp3.size)} MB` : "Audio file · up to 500MB";
+  const mp3Label = mp3 ? `${mp3.name} · ${fmtMB(mp3.size)} MB` : "Audio file · under 250 MB recommended";
 
   const txtLabel = transcript
     ? transcript.name
@@ -165,8 +165,8 @@ export function UploadScreen({ onSubmit }: Props) {
         </h1>
 
         <p className="hero-sub">
-          Drop your MP3 or transcript. In under a minute*, PostPod writes your
-          titles, chapters, pull quotes, LinkedIn post, and timestamps.
+          Drop your MP3 or transcript. PostPod writes your titles, chapters,
+          pull quotes, LinkedIn post, and timestamps — ready to publish.
         </p>
 
         <div className="upload-card">
@@ -375,14 +375,12 @@ export function UploadScreen({ onSubmit }: Props) {
             <IconShield size={14} /> Files never leave your workspace
           </span>
           <span>
-            <IconClock size={14} /> ~45 sec for a 45-min episode
+            <IconClock size={14} /> Audio: 5–15 min · Text: under 2 min
           </span>
         </div>
 
         <p className="hero-disclaimer">
-          <span className="asterisk">*</span> Processing time varies with file
-          size and length. Typical episodes (30–60 min) finish in under a
-          minute; longer or higher-bitrate files may take a few minutes.
+          <span className="asterisk">*</span> For best results in this MVP, keep audio files under 250 MB or 30 minutes long. Larger files work but take longer to transcribe. Uploading a transcript directly skips transcription entirely.
         </p>
       </div>
     </div>

@@ -7,9 +7,9 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { IconCheck } from "@/components/icons";
 
 const AUDIO_STAGES = [
-  { key: "transcribe", label: "Transcribing audio",            weight: 35, time: "~1 min" },
-  { key: "analyze",   label: "Analyzing content & structure", weight: 40, time: "18s" },
-  { key: "generate",  label: "Generating outputs",            weight: 25, time: "14s" },
+  { key: "transcribe", label: "Transcribing audio",            weight: 35, time: "5–15 min" },
+  { key: "analyze",   label: "Analyzing content & structure", weight: 40, time: "~30s" },
+  { key: "generate",  label: "Generating outputs",            weight: 25, time: "~60s" },
 ] as const;
 
 const TEXT_STAGES = [
@@ -225,13 +225,18 @@ export function ProcessingScreen({ episodeName, episodeId, hasAudio = true, onCo
           {isTranscribing && (
             <div
               style={{
-                marginTop: 8,
+                marginTop: 12,
+                padding: "12px 16px",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-soft)",
+                borderRadius: "var(--radius-sm)",
                 fontSize: 12,
-                color: "var(--text-dim)",
+                color: "var(--text-muted)",
+                lineHeight: 1.6,
                 textAlign: "center",
               }}
             >
-              This takes 2–5 minutes. Grab a coffee and we&apos;ll have your assets ready when you&apos;re back.
+              Audio transcription takes <strong style={{ color: "var(--text)" }}>5–15 minutes</strong> depending on file size — longer episodes take longer. Grab a coffee (or a meal!) and we&apos;ll have everything ready when you&apos;re back. Don&apos;t close this tab.
             </div>
           )}
         </div>
