@@ -177,7 +177,7 @@ export function UploadScreen({ onSubmit }: Props) {
             onChange={(e) => setEpisodeName(e.target.value)}
             disabled={isUploading}
           />
-          <p style={{ fontSize: 11, color: "var(--text-dim)", margin: "-4px 0 0 2px" }}>
+          <p style={{ fontSize: 10, color: "var(--text-dim)", margin: "4px 0 8px", textAlign: "right" }}>
             * Required — min 4 characters
           </p>
 
@@ -349,7 +349,7 @@ export function UploadScreen({ onSubmit }: Props) {
               : <>Generate publish-ready assets <IconArrow size={16} /></>}
           </button>
 
-          <div style={{ textAlign: "center" }}>
+          <div style={{ textAlign: "center", marginTop: 12 }}>
             <button
               type="button"
               onClick={handleDemoInstant}
