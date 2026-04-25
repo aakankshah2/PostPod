@@ -169,37 +169,6 @@ export function UploadScreen({ onSubmit }: Props) {
           titles, chapters, pull quotes, LinkedIn post, and timestamps.
         </p>
 
-        {/* One-click demo CTA */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
-          <button
-            type="button"
-            onClick={handleDemoInstant}
-            style={{
-              background: "var(--accent)",
-              color: "#000",
-              border: "none",
-              borderRadius: "var(--radius)",
-              padding: "10px 20px",
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            See a demo output →
-          </button>
-          <span style={{ fontSize: 13, color: "var(--text-dim)" }}>
-            No upload needed · outputs appear in ~6 seconds
-          </span>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-          <span style={{ fontSize: 12, color: "var(--text-dim)", whiteSpace: "nowrap" }}>or upload your own episode</span>
-          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-        </div>
-
         <div className="upload-card">
           <input
             className="episode-input"
@@ -376,6 +345,26 @@ export function UploadScreen({ onSubmit }: Props) {
               ? "Uploading…"
               : <>Generate publish-ready assets <IconArrow size={16} /></>}
           </button>
+
+          <div style={{ textAlign: "center" }}>
+            <button
+              type="button"
+              onClick={handleDemoInstant}
+              style={{
+                background: "rgba(245, 197, 24, 0.12)",
+                color: "rgba(245, 197, 24, 0.7)",
+                border: "1px solid rgba(245, 197, 24, 0.2)",
+                borderRadius: "var(--radius)",
+                padding: "7px 16px",
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: "pointer",
+                letterSpacing: "-0.01em",
+              }}
+            >
+              Try a demo episode →
+            </button>
+          </div>
         </div>
 
         <div className="upload-foot">

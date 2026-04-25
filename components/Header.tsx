@@ -7,10 +7,9 @@ import { useRouter } from "next/navigation";
 
 type Props = {
   onHome?: () => void;
-  creditsLabel?: string;
 };
 
-export function Header({ onHome, creditsLabel = "1 free episode left" }: Props) {
+export function Header({ onHome }: Props) {
   const { isAuthenticated } = useConvexAuth();
   const { signOut } = useAuthActions();
   const router = useRouter();
@@ -27,7 +26,6 @@ export function Header({ onHome, creditsLabel = "1 free episode left" }: Props) 
       <div className="header-right">
         {isAuthenticated ? (
           <>
-            <span className="pill">{creditsLabel}</span>
             <button
               className="pill-link"
               onClick={async () => {
