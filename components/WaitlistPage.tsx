@@ -454,7 +454,83 @@ export function WaitlistPage() {
         </div>
       </section>
 
-      {/* ── Sections 2–4 ── */}
+      {/* ── Section 2: Demo video thumbnail ── */}
+      <section
+        style={{
+          width: "100%",
+          maxWidth: "720px",
+          margin: "0 auto",
+          padding: "0 clamp(24px, 6vw, 48px)",
+        }}
+      >
+        <a
+          href="https://youtu.be/F-9mls5w16A"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "block",
+            position: "relative",
+            borderRadius: "16px",
+            overflow: "hidden",
+            border: "1px solid var(--color-border)",
+            cursor: "pointer",
+            textDecoration: "none",
+          }}
+        >
+          {/* Thumbnail */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://img.youtube.com/vi/F-9mls5w16A/maxresdefault.jpg"
+            alt="PostPod demo video"
+            style={{ display: "block", width: "100%", aspectRatio: "16/9", objectFit: "cover" }}
+          />
+
+          {/* Dark overlay */}
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.35)",
+            transition: "background 0.2s ease",
+          }} />
+
+          {/* Play button */}
+          <div style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 14,
+          }}>
+            <div style={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              background: "var(--color-accent)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 8px 32px rgba(245,197,24,0.4)",
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#000">
+                <polygon points="5,3 19,12 5,21" />
+              </svg>
+            </div>
+            <span style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#ffffff",
+              letterSpacing: "-0.01em",
+              textShadow: "0 1px 4px rgba(0,0,0,0.6)",
+            }}>
+              Watch the demo
+            </span>
+          </div>
+        </a>
+      </section>
+
+      {/* ── Sections 3–5 ── */}
       <HowItWorks />
       <BuiltFor />
       <Footer />
