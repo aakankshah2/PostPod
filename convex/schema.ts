@@ -18,7 +18,7 @@ export default defineSchema({
 
   // Each podcast episode a user submits for processing.
   episodes: defineTable({
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     title: v.string(),
     audioStorageId: v.optional(v.id("_storage")),
     transcript: v.optional(v.string()),
@@ -31,6 +31,7 @@ export default defineSchema({
       v.literal("error"),
     ),
     errorMessage: v.optional(v.string()),
+    creditSpent: v.optional(v.boolean()),
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
@@ -39,35 +40,17 @@ export default defineSchema({
   // AI-generated assets for a completed episode.
   assets: defineTable({
     episodeId: v.id("episodes"),
-    titles: v.array(
-      v.object({
-        text: v.string(),
-        score: v.number(),
-      }),
-    ),
+    titles: v.array(v.string()),
     chapters: v.array(
       v.object({
-        time: v.string(),
-        label: v.string(),
-        summary: v.optional(v.string()),
+        timestamp: v.string(),
+        title: v.string(),
+        summary: v.string(),
       }),
     ),
-    pullQuotes: v.array(
-      v.object({
-        text: v.string(),
-        timestamp: v.optional(v.string()),
-        bestFor: v.optional(v.string()),
-      }),
-    ),
+    pullQuotes: v.array(v.string()),
     linkedInPost: v.string(),
-    showNotes: v.optional(v.string()),
-    timestamps: v.array(
-      v.object({
-        time: v.string(),
-        label: v.string(),
-        dur: v.optional(v.string()),
-      }),
-    ),
+    showNotes: v.string(),
     createdAt: v.number(),
   }).index("by_episode", ["episodeId"]),
 
@@ -77,6 +60,7 @@ export default defineSchema({
     userId: v.id("users"),
     razorpayOrderId: v.string(),
     razorpayPaymentId: v.optional(v.string()),
+    razorpaySignature: v.optional(v.string()),
     creditsPurchased: v.number(),
     amountInr: v.number(),
     status: v.union(

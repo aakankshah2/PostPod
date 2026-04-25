@@ -8,8 +8,14 @@
  * @module
  */
 
+import type * as assetGeneration from "../assetGeneration.js";
+import type * as assets from "../assets.js";
 import type * as auth from "../auth.js";
+import type * as episodes from "../episodes.js";
 import type * as http from "../http.js";
+import type * as payments from "../payments.js";
+import type * as transactions from "../transactions.js";
+import type * as transcription from "../transcription.js";
 import type * as users from "../users.js";
 import type * as waitlist from "../waitlist.js";
 
@@ -20,8 +26,14 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  assetGeneration: typeof assetGeneration;
+  assets: typeof assets;
   auth: typeof auth;
+  episodes: typeof episodes;
   http: typeof http;
+  payments: typeof payments;
+  transactions: typeof transactions;
+  transcription: typeof transcription;
   users: typeof users;
   waitlist: typeof waitlist;
 }>;

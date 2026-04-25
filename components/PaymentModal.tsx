@@ -1,37 +1,93 @@
 "use client";
 
 import { useState } from "react";
+import { useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { IconClose, IconCheck, IconShield } from "@/components/icons";
+
+type PackId = "single" | "pack";
+
+const PACKS: Record<PackId, { label: string; sub: string; credits: number; display: string }> = {
+  single: { label: "Single episode",  sub: "1 credit",             credits: 1,  display: "₹299"  },
+  pack:   { label: "10-credit pack",  sub: "10 credits · save ₹491", credits: 10, display: "₹2499" },
+};
 
 type Props = {
   episodeName: string;
   onClose: () => void;
   onSuccess: () => void;
+  defaultPack?: "single" | "pack";  // NEW
 };
 
-type Method = "upi" | "card" | "netbanking" | "wallet";
-type Step = "form" | "processing" | "success";
+function loadRazorpayScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if ((window as any).Razorpay) { resolve(); return; }
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Failed to load Razorpay"));
+    document.head.appendChild(s);
+  });
+}
 
-const METHODS: { id: Method; label: string }[] = [
-  { id: "upi",        label: "UPI" },
-  { id: "card",       label: "Card" },
-  { id: "netbanking", label: "NetBank" },
-  { id: "wallet",     label: "Wallet" },
-];
+export function PaymentModal({ episodeName, onClose, onSuccess, defaultPack }: Props) {
+  const createOrder = useAction(api.payments.createOrder);
+  const verifyPayment = useAction(api.payments.verifyPayment);
 
-export function PaymentModal({ episodeName, onClose, onSuccess }: Props) {
-  const [method, setMethod] = useState<Method>("upi");
-  const [step, setStep] = useState<Step>("form");
-  const [upi, setUpi] = useState("");
-  const [email, setEmail] = useState("");
+  const [selectedPack, setSelectedPack] = useState<PackId>(defaultPack ?? "single");
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"form" | "success">("form");
+  const [error, setError] = useState<string | null>(null);
+  const [unlockedCredits, setUnlockedCredits] = useState(0);
 
-  const displayName =
-    episodeName.length > 38 ? `${episodeName.slice(0, 38)}…` : episodeName;
+  const displayName = episodeName.length > 38 ? `${episodeName.slice(0, 38)}…` : episodeName;
+  const pack = PACKS[selectedPack];
 
-  const pay = () => {
-    setStep("processing");
-    setTimeout(() => setStep("success"), 1600);
-    setTimeout(() => onSuccess(), 2600);
+  const pay = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const order = await createOrder({ packId: selectedPack });
+      await loadRazorpayScript();
+
+      await new Promise<void>((resolve, reject) => {
+        const rzp = new (window as any).Razorpay({
+          key: order.keyId,
+          amount: order.amount,
+          currency: "INR",
+          name: "PostPod",
+          description: pack.label,
+          order_id: order.orderId,
+          handler: async (response: {
+            razorpay_payment_id: string;
+            razorpay_order_id: string;
+            razorpay_signature: string;
+          }) => {
+            try {
+              const result = await verifyPayment({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              });
+              setUnlockedCredits(result.creditsPurchased);
+              setStep("success");
+              setTimeout(() => onSuccess(), 1800);
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          },
+          modal: { ondismiss: () => reject(new Error("cancelled")) },
+          theme: { color: "#ffffff" },
+        });
+        rzp.open();
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Payment failed";
+      if (msg !== "cancelled") setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,80 +105,54 @@ export function PaymentModal({ episodeName, onClose, onSuccess }: Props) {
 
         {step === "form" && (
           <div className="modal-body">
-            <div className="modal-amount">
-              <span className="currency">₹</span>299
-            </div>
-            <div className="modal-for">Full unlock for &ldquo;{displayName}&rdquo;</div>
-
-            <div className="modal-methods">
-              {METHODS.map((m) => (
-                <button
-                  key={m.id}
-                  className={`modal-method ${method === m.id ? "active" : ""}`}
-                  onClick={() => setMethod(m.id)}
-                >
-                  {m.label}
-                </button>
-              ))}
+            <div className="modal-for" style={{ marginBottom: 20 }}>
+              Unlock outputs for &ldquo;{displayName}&rdquo;
             </div>
 
-            {method === "upi" && (
-              <div className="modal-row">
-                <div className="modal-label">UPI ID</div>
-                <input
-                  className="modal-input"
-                  placeholder="yourname@paytm"
-                  value={upi}
-                  onChange={(e) => setUpi(e.target.value)}
-                />
-              </div>
-            )}
-
-            {method === "card" && (
-              <>
-                <div className="modal-row">
-                  <div className="modal-label">Card number</div>
-                  <input className="modal-input" placeholder="4242 4242 4242 4242" />
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  <div className="modal-row">
-                    <div className="modal-label">Expiry</div>
-                    <input className="modal-input" placeholder="MM/YY" />
-                  </div>
-                  <div className="modal-row">
-                    <div className="modal-label">CVV</div>
-                    <input className="modal-input" placeholder="123" />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {method === "netbanking" && (
-              <div className="modal-row">
-                <div className="modal-label">Choose bank</div>
-                <input className="modal-input" placeholder="HDFC, ICICI, Axis, SBI…" />
-              </div>
-            )}
-
-            {method === "wallet" && (
-              <div className="modal-row">
-                <div className="modal-label">Wallet</div>
-                <input className="modal-input" placeholder="Paytm, PhonePe, Amazon Pay…" />
-              </div>
-            )}
-
-            <div className="modal-row">
-              <div className="modal-label">Email for receipt</div>
-              <input
-                className="modal-input"
-                placeholder="host@yourpodcast.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+              {(["single", "pack"] as PackId[]).map((id) => {
+                const p = PACKS[id];
+                const active = selectedPack === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setSelectedPack(id)}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "14px 16px",
+                      border: `1.5px solid ${active ? "var(--text)" : "var(--border)"}`,
+                      borderRadius: 8,
+                      background: active ? "rgba(255,255,255,0.04)" : "transparent",
+                      cursor: "pointer",
+                      width: "100%",
+                      textAlign: "left",
+                      transition: "border-color 0.15s",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text)" }}>
+                        {p.label}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 3 }}>
+                        {p.sub}
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: 700, fontSize: 18, color: "var(--text)" }}>
+                      {p.display}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
-            <button className="modal-pay-btn" onClick={pay}>
-              Pay ₹299 securely
+            {error && (
+              <div style={{ fontSize: 13, color: "#f87171", marginBottom: 14 }}>{error}</div>
+            )}
+
+            <button className="modal-pay-btn" onClick={pay} disabled={loading}>
+              {loading ? "Opening checkout…" : `Pay ${pack.display} securely`}
             </button>
 
             <div className="modal-foot">
@@ -131,49 +161,25 @@ export function PaymentModal({ episodeName, onClose, onSuccess }: Props) {
           </div>
         )}
 
-        {step === "processing" && (
-          <div className="modal-body" style={{ textAlign: "center", padding: "40px 24px" }}>
-            <div
-              style={{
-                margin: "0 auto 18px",
-                width: 50,
-                height: 50,
-                border: "3px solid var(--border)",
-                borderTopColor: "var(--accent)",
-                borderRadius: "50%",
-                animation: "spin 0.9s linear infinite",
-              }}
-            />
-            <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>
-              Processing payment
-            </div>
-            <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-              Contacting your bank securely…
-            </div>
-          </div>
-        )}
-
         {step === "success" && (
           <div className="modal-body" style={{ textAlign: "center", padding: "40px 24px" }}>
-            <div
-              style={{
-                margin: "0 auto 18px",
-                width: 54,
-                height: 54,
-                borderRadius: "50%",
-                background: "var(--success)",
-                color: "var(--bg)",
-                display: "grid",
-                placeItems: "center",
-              }}
-            >
+            <div style={{
+              margin: "0 auto 18px",
+              width: 54,
+              height: 54,
+              borderRadius: "50%",
+              background: "var(--success)",
+              color: "var(--bg)",
+              display: "grid",
+              placeItems: "center",
+            }}>
               <IconCheck size={28} stroke={3} />
             </div>
             <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 6 }}>
               Payment successful
             </div>
             <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-              All outputs unlocked. Redirecting…
+              {unlockedCredits} credit{unlockedCredits !== 1 ? "s" : ""} added. Unlocking outputs…
             </div>
           </div>
         )}

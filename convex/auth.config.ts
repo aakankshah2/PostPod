@@ -4,7 +4,7 @@
 export default {
   providers: [
     {
-      domain: "https://hip-dinosaur-440.eu-west-1.convex.site",
+      domain: process.env.CONVEX_SITE_URL,
       applicationID: "convex",
     },
   ],

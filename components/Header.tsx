@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useConvexAuth } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useRouter } from "next/navigation";
 
 type Props = {
   onHome?: () => void;
@@ -10,6 +12,8 @@ type Props = {
 
 export function Header({ onHome, creditsLabel = "1 free episode left" }: Props) {
   const { isAuthenticated } = useConvexAuth();
+  const { signOut } = useAuthActions();
+  const router = useRouter();
 
   return (
     <header className="header">
@@ -24,9 +28,16 @@ export function Header({ onHome, creditsLabel = "1 free episode left" }: Props) 
         {isAuthenticated ? (
           <>
             <span className="pill">{creditsLabel}</span>
-            <Link href="/sign-out" className="pill-link">
+            <button
+              className="pill-link"
+              onClick={async () => {
+                await signOut();
+                router.push("/");
+              }}
+              style={{ background: "none", border: "none", cursor: "pointer" }}
+            >
               Sign out
-            </Link>
+            </button>
           </>
         ) : (
           <Link href="/sign-in" className="pill-link">

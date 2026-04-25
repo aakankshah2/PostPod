@@ -1,18 +1,7 @@
 import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
-import { Id } from "./_generated/dataModel";
-import type { MutationCtx, QueryCtx } from "./_generated/server";
+import { getAuthUserId } from "@convex-dev/auth/server";
 
-// Resolve the current user's Convex _id from their auth identity.
-// @convex-dev/auth sets the JWT subject to the users table _id.
-async function currentUserId(ctx: QueryCtx | MutationCtx): Promise<Id<"users">> {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Not authenticated");
-  return identity.subject as Id<"users">;
-}
-
-// Called after successful sign-in. Creates a credit record for new users
-// with 1 free episode. Safe to call on every sign-in (idempotent).
 export const ensureUserCredits = internalMutation({
   args: { userId: v.id("users") },
   handler: async (ctx, { userId }) => {
@@ -31,14 +20,12 @@ export const ensureUserCredits = internalMutation({
   },
 });
 
-// Returns the current user's credit balance, or null if not signed in.
 export const getMyCredits = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
+    const userId = await getAuthUserId(ctx);
+    if (!userId) return null;
 
-    const userId = identity.subject as Id<"users">;
     const record = await ctx.db
       .query("userCredits")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -48,12 +35,12 @@ export const getMyCredits = query({
   },
 });
 
-// Decrement credits by 1 after a successful generation.
-// Throws if the user has no credits remaining.
 export const spendCredit = mutation({
   args: {},
   handler: async (ctx) => {
-    const userId = await currentUserId(ctx);
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
     const record = await ctx.db
       .query("userCredits")
       .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -69,7 +56,30 @@ export const spendCredit = mutation({
   },
 });
 
-// Add credits after a verified Razorpay payment.
+export const spendCreditForEpisode = mutation({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const episode = await ctx.db.get(episodeId);
+    if (!episode) throw new Error("Episode not found");
+    // If episode has an owner, verify it matches the requesting user
+    if (episode.userId && episode.userId !== userId) throw new Error("Episode not found");
+    if (episode.creditSpent === true) return; // idempotent
+
+    const record = await ctx.db
+      .query("userCredits")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .unique();
+
+    if (!record || record.creditsRemaining < 1) throw new Error("NO_CREDITS");
+
+    await ctx.db.patch(record._id, { creditsRemaining: record.creditsRemaining - 1 });
+    await ctx.db.patch(episodeId, { creditSpent: true });
+  },
+});
+
 export const addCredits = internalMutation({
   args: { userId: v.id("users"), amount: v.number() },
   handler: async (ctx, { userId, amount }) => {

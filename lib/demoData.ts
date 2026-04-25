@@ -1,15 +1,42 @@
-export const DEMO_OUTPUTS = {
-  episodeName: "Naval Ravikant on Wealth, Happiness & Leverage",
-  duration: "47:23",
-  wordCount: 8420,
+// Shape must stay in sync with the Convex assets table schema.
+export type AssetData = {
+  titles: string[];
+  chapters: Array<{ timestamp: string; title: string; summary: string }>;
+  pullQuotes: string[];
+  linkedInPost: string;
+  showNotes: string;
+};
 
+export const DEMO_OUTPUTS: AssetData = {
   titles: [
-    { text: "Naval Ravikant: The Quiet Math Behind Building Real Wealth", score: 94 },
-    { text: "Why Most People Chase Money the Wrong Way — Naval's 3 Laws of Leverage", score: 91 },
-    { text: "The 47-Minute Framework That Will Change How You Think About Success", score: 87 },
+    "Naval Ravikant: The Quiet Math Behind Building Real Wealth",
+    "Why Most People Chase Money the Wrong Way — Naval's 3 Laws",
+    "How to Build Wealth Without Getting Lucky, with Naval Ravikant",
+    "5 Mental Models from Naval That Will Change How You Work",
+    "\"Play Long Games With Long People\" — Naval Ravikant",
   ],
 
-  linkedinPost: `I spent 47 minutes with Naval Ravikant and walked away with a framework I wish I'd had a decade ago.
+  chapters: [
+    { timestamp: "00:00", title: "Wealth vs. money",           summary: "Naval explains why wealth is assets that earn while you sleep, not a paycheck." },
+    { timestamp: "02:14", title: "The four types of leverage", summary: "Code, media, capital, and people — and the compounding returns of each." },
+    { timestamp: "08:30", title: "Finding specific knowledge", summary: "How to identify the skills at the intersection of curiosity and market demand." },
+    { timestamp: "15:42", title: "Equity over time-renting",   summary: "Why ownership is the only reliable path to financial independence." },
+    { timestamp: "20:55", title: "Reading as an unfair edge",  summary: "Naval's case for deep reading as the highest-ROI habit available to anyone." },
+    { timestamp: "25:10", title: "Happiness is a practice",    summary: "Reframing happiness from a destination to a daily trained skill." },
+    { timestamp: "33:48", title: "Long games, long people",    summary: "How compound interest applies to relationships, reputation, and capital." },
+    { timestamp: "39:20", title: "Judgment vs. information",   summary: "Why the ability to act on the right information matters more than having it." },
+    { timestamp: "44:55", title: "Closing thoughts",           summary: "Naval's single piece of advice to his younger self." },
+  ],
+
+  pullQuotes: [
+    "You're not going to get rich renting out your time. You must own equity — a piece of a business — to gain your financial freedom.",
+    "Play long-term games with long-term people. Compound interest works in everything, not just money.",
+    "Happiness is not something you pursue. It's something you practice. Every day you're either training to be miserable or training to be happy.",
+    "Specific knowledge is found by pursuing your genuine curiosity, not by following what's hot.",
+    "Read what you love until you love to read. That's the whole secret.",
+  ],
+
+  linkedInPost: `I spent 47 minutes with Naval Ravikant and walked away with a framework I wish I'd had a decade ago.
 
 Three things stuck with me:
 
@@ -23,44 +50,30 @@ The part I keep replaying: "Play long-term games with long-term people." Everyth
 
 If you're early in your career — or thinking about your next move — this episode is worth the full listen.
 
-🎧 Full conversation on PostPod → link in comments
+Full conversation on PostPod → link in comments`,
 
-#podcast #entrepreneurship #leverage`,
+  showNotes: `Naval Ravikant joins us for a wide-ranging conversation on wealth, happiness, and the art of thinking long-term. Naval is the co-founder of AngelList and an early investor in companies including Twitter, Uber, and Notion.
 
-  timestamps: [
-    { time: "00:00", label: "Cold open — Naval on why wealth ≠ money", dur: "2m" },
-    { time: "02:14", label: "The four types of leverage", dur: "6m" },
-    { time: "08:30", label: "Specific knowledge and how to find yours", dur: "7m" },
-    { time: "15:42", label: "Why you should own equity, not rent time", dur: "5m" },
-    { time: "20:55", label: "Reading as the ultimate unfair advantage", dur: "4m" },
-    { time: "25:10", label: "Happiness is a skill you can practice", dur: "8m" },
-    { time: "33:48", label: "Long games with long people", dur: "6m" },
-    { time: "39:20", label: "Building judgment vs. accumulating information", dur: "5m" },
-    { time: "44:55", label: "Closing thoughts — advice to your younger self", dur: "2m" },
-  ],
+In this episode:
+- Understand why wealth is fundamentally different from income
+- Discover the four types of leverage available to anyone today
+- Learn how to identify your specific knowledge and why it compounds
+- Explore why ownership beats time-renting every time
+- Hear Naval's case for reading as the highest-ROI daily habit
 
-  chapters: [
-    { time: "00:00", label: "Introduction", dur: "2m" },
-    { time: "02:14", label: "The Four Types of Leverage", dur: "6m" },
-    { time: "08:30", label: "Finding Your Specific Knowledge", dur: "7m" },
-    { time: "15:42", label: "Equity vs. Time", dur: "5m" },
-    { time: "20:55", label: "The Reading Habit", dur: "4m" },
-    { time: "25:10", label: "Happiness as Practice", dur: "8m" },
-    { time: "33:48", label: "Playing Long Games", dur: "6m" },
-    { time: "39:20", label: "Judgment vs. Information", dur: "5m" },
-    { time: "44:55", label: "Closing & Parting Advice", dur: "2m" },
-  ],
+About the guest:
+Naval Ravikant is a serial entrepreneur and angel investor based in San Francisco. He co-founded AngelList and has been involved in over 100 companies as a founder or investor.
 
-  quotes: [
-    { text: "You're not going to get rich renting out your time. You must own equity — a piece of a business — to gain your financial freedom.", ts: "16:22", fit: "Twitter" },
-    { text: "Play long-term games with long-term people. Compound interest works in everything, not just money.", ts: "34:08", fit: "LinkedIn" },
-    { text: "The most important skill for getting rich is becoming a perpetual learner. You have to know how to learn anything you want to learn.", ts: "09:15", fit: "Carousel" },
-    { text: "Happiness is not something you pursue. It's something you practice. Every day you're either training to be miserable or training to be happy.", ts: "26:33", fit: "Twitter" },
-    { text: "Read what you love until you love to read. That's the whole secret.", ts: "21:10", fit: "Instagram" },
-    { text: "Specific knowledge is found by pursuing your genuine curiosity, not by following what's hot.", ts: "10:48", fit: "Twitter" },
-    { text: "Money is how we transfer time and wealth. Wealth is assets that earn while you sleep.", ts: "01:22", fit: "Twitter" },
-    { text: "If you can't see yourself working with someone for life, don't work with them for a day.", ts: "35:42", fit: "LinkedIn" },
-  ],
+Timestamps:
+00:00 — Wealth vs. money
+02:14 — The four types of leverage
+08:30 — Finding specific knowledge
+15:42 — Equity over time-renting
+20:55 — Reading as an unfair edge
+25:10 — Happiness is a practice
+33:48 — Long games, long people
+39:20 — Judgment vs. information
+44:55 — Closing thoughts
+
+Subscribe so you don't miss the next episode.`,
 };
-
-export type DemoOutputs = typeof DEMO_OUTPUTS;
