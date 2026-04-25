@@ -6,8 +6,14 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { IconCheck } from "@/components/icons";
 
-const STAGES = [
+const AUDIO_STAGES = [
   { key: "transcribe", label: "Transcribing audio",            weight: 35, time: "~1 min" },
+  { key: "analyze",   label: "Analyzing content & structure", weight: 40, time: "18s" },
+  { key: "generate",  label: "Generating outputs",            weight: 25, time: "14s" },
+] as const;
+
+const TEXT_STAGES = [
+  { key: "transcribe", label: "Reading transcript",            weight: 35, time: "instant" },
   { key: "analyze",   label: "Analyzing content & structure", weight: 40, time: "18s" },
   { key: "generate",  label: "Generating outputs",            weight: 25, time: "14s" },
 ] as const;
@@ -20,11 +26,12 @@ const DEMO_MS = 6000;
 type Props = {
   episodeName: string;
   episodeId?: string;
+  hasAudio?: boolean;
   onComplete: () => void;
   onError?: (msg: string) => void;
 };
 
-export function ProcessingScreen({ episodeName, episodeId, onComplete, onError }: Props) {
+export function ProcessingScreen({ episodeName, episodeId, hasAudio = true, onComplete, onError }: Props) {
   const isDemo = !episodeId;
 
   // Subscribe to the real episode when we have an ID; skip query in demo mode
@@ -142,6 +149,7 @@ export function ProcessingScreen({ episodeName, episodeId, onComplete, onError }
   // ── Stage computation ────────────────────────────────────────────────────
   // In real mode during transcription, stage 0 is always "active" (progress = 0).
   // Once simPhase kicks in, progress moves from 35→100 and stage 0 is done.
+  const STAGES = hasAudio ? AUDIO_STAGES : TEXT_STAGES;
   let cumulative = 0;
   const stageStates = STAGES.map((s) => {
     const start = cumulative;
@@ -208,7 +216,7 @@ export function ProcessingScreen({ episodeName, episodeId, onComplete, onError }
           >
             <span>
               {isTranscribing
-                ? `Transcribing · ${elapsed}s elapsed`
+                ? `${hasAudio ? "Transcribing" : "Reading"} · ${elapsed}s elapsed`
                 : `${Math.round(progress)}% · ${elapsed}s elapsed`}
             </span>
             <span>Please don&apos;t close this window</span>

@@ -137,6 +137,7 @@ export function PostPodApp() {
         <ProcessingScreen
           episodeName={episode?.title ?? ""}
           episodeId={episode?.episodeId}
+          hasAudio={episode?.hasAudio ?? false}
           onComplete={handleComplete}
           onError={handleError}
         />
