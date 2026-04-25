@@ -27,6 +27,22 @@ export function PostPodApp() {
   const [payOpen, setPayOpen] = useState<{ open: boolean; defaultPack?: "single" | "pack" }>({ open: false });
   const [toast, setToast] = useState<string | null>(null);
 
+  // Restore episode from localStorage on mount (handles post-sign-in redirect)
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("postpod_episode");
+      if (saved) {
+        const parsed = JSON.parse(saved) as EpisodeSubmitData;
+        if (parsed.episodeId && !parsed.isDemo) {
+          setEpisode(parsed);
+          setScreen("outputs");
+        }
+      }
+    } catch {
+      localStorage.removeItem("postpod_episode");
+    }
+  }, []);
+
   const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2200);
@@ -52,6 +68,13 @@ export function PostPodApp() {
     setScreen("outputs");
   };
 
+  // Persist real episode to localStorage so sign-in redirect doesn't lose state
+  useEffect(() => {
+    if (screen === "outputs" && episode?.episodeId && !episode.isDemo) {
+      localStorage.setItem("postpod_episode", JSON.stringify(episode));
+    }
+  }, [screen, episode]);
+
   const handleError = useCallback(
     (msg: string) => {
       setScreen("upload");
@@ -62,6 +85,7 @@ export function PostPodApp() {
   );
 
   const handleHome = () => {
+    localStorage.removeItem("postpod_episode");
     setScreen("upload");
     setEpisode(null);
   };

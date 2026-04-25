@@ -44,47 +44,34 @@ export function UploadScreen({ onSubmit }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [isDemo, setIsDemo] = useState(false);
 
   const mp3Ref = useRef<HTMLInputElement>(null);
   const txtRef = useRef<HTMLInputElement>(null);
   const xhrRef = useRef<XMLHttpRequest | null>(null);
 
-  const hasAudio = !!mp3 || isDemo;
+  const hasAudio = !!mp3;
   const hasPastedText = pasteText.trim().length > 0;
-  const hasTranscript = !!transcript || hasPastedText || isDemo;
+  const hasTranscript = !!transcript || hasPastedText;
   const canSubmit = !isUploading && episodeName.trim().length > 3 && (hasAudio || hasTranscript);
 
-  const demoFill = (e: React.MouseEvent) => {
+  const handleDemoInstant = (e: React.MouseEvent) => {
     e.preventDefault();
-    setEpisodeName("Naval Ravikant on Wealth, Happiness & Leverage");
-    setIsDemo(true);
-    setMp3(null);
-    setTranscript(null);
-    setPasteText("");
+    onSubmit({ title: "Naval Ravikant on Wealth, Happiness & Leverage", isDemo: true });
   };
 
   const handleMp3Change = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] ?? null;
-    setMp3(file);
-    if (file) setIsDemo(false);
+    setMp3(e.target.files?.[0] ?? null);
   };
 
   const handleTxtChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     setTranscript(file);
-    if (file) {
-      setIsDemo(false);
-      setPasteText("");
-    }
+    if (file) setPasteText("");
   };
 
   const handlePasteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPasteText(e.target.value);
-    if (e.target.value) {
-      setIsDemo(false);
-      setTranscript(null);
-    }
+    if (e.target.value) setTranscript(null);
   };
 
   const handleCancel = () => {
@@ -98,12 +85,6 @@ export function UploadScreen({ onSubmit }: Props) {
   const handleSubmit = async () => {
     if (!canSubmit) return;
     setUploadError(null);
-
-    if (isDemo) {
-      onSubmit({ title: episodeName.trim(), isDemo: true });
-      return;
-    }
-
     setIsUploading(true);
     try {
       let audioStorageId: Id<"_storage"> | undefined;
@@ -164,18 +145,12 @@ export function UploadScreen({ onSubmit }: Props) {
     ? Math.round((uploadProgress.loaded / uploadProgress.total) * 100)
     : 0;
 
-  const mp3Label = mp3
-    ? `${mp3.name} · ${fmtMB(mp3.size)} MB`
-    : isDemo
-    ? "naval-ep47-raw.mp3 · 48.2 MB"
-    : "Audio file · up to 500MB";
+  const mp3Label = mp3 ? `${mp3.name} · ${fmtMB(mp3.size)} MB` : "Audio file · up to 500MB";
 
   const txtLabel = transcript
     ? transcript.name
     : hasPastedText
     ? `Text pasted · ${pasteText.trim().length.toLocaleString()} chars`
-    : isDemo
-    ? "naval-transcript.txt · 124 KB"
     : ".txt file · or paste text below";
 
   return (
@@ -193,6 +168,37 @@ export function UploadScreen({ onSubmit }: Props) {
           Drop your MP3 or transcript. In under a minute*, PostPod writes your
           titles, chapters, pull quotes, LinkedIn post, and timestamps.
         </p>
+
+        {/* One-click demo CTA */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+          <button
+            type="button"
+            onClick={handleDemoInstant}
+            style={{
+              background: "var(--accent)",
+              color: "#000",
+              border: "none",
+              borderRadius: "var(--radius)",
+              padding: "10px 20px",
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            See a demo output →
+          </button>
+          <span style={{ fontSize: 13, color: "var(--text-dim)" }}>
+            No upload needed · outputs appear in ~6 seconds
+          </span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          <span style={{ fontSize: 12, color: "var(--text-dim)", whiteSpace: "nowrap" }}>or upload your own episode</span>
+          <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+        </div>
 
         <div className="upload-card">
           <input
@@ -378,27 +384,6 @@ export function UploadScreen({ onSubmit }: Props) {
           </span>
           <span>
             <IconClock size={14} /> ~45 sec for a 45-min episode
-          </span>
-          <span>
-            <a
-              href="#"
-              onClick={demoFill}
-              style={{
-                color: "var(--accent)",
-                textDecoration: "underline",
-                textDecorationColor: "transparent",
-                textUnderlineOffset: "2px",
-                transition: "text-decoration-color 0.15s",
-              }}
-              onMouseEnter={(e) =>
-                ((e.target as HTMLElement).style.textDecorationColor = "currentColor")
-              }
-              onMouseLeave={(e) =>
-                ((e.target as HTMLElement).style.textDecorationColor = "transparent")
-              }
-            >
-              Try with demo episode →
-            </a>
           </span>
         </div>
 
