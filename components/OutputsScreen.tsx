@@ -133,8 +133,11 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
     // Not authenticated — inline email form
     if (signInStep === "sent") {
       return (
-        <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
-          ✉ Check your inbox — click the link to unlock
+        <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
+          ✉ Check your inbox — click the link to unlock.{" "}
+          <span style={{ color: "var(--text-dim)", fontSize: 12 }}>
+            Not there? Check spam or junk.
+          </span>
         </div>
       );
     }

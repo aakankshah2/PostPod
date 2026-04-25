@@ -87,6 +87,9 @@ export function SignInGate() {
                   We sent a magic link to <strong style={{ color: "var(--text)" }}>{email}</strong>.
                   Click it to continue — expires in 10 minutes.
                 </p>
+                <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "8px 0 0", lineHeight: 1.55 }}>
+                  Can&apos;t find it? Check your <strong style={{ color: "var(--text-muted)" }}>spam or junk folder</strong> — it sometimes lands there.
+                </p>
               </div>
               <button
                 type="button"
