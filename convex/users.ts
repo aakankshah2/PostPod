@@ -80,6 +80,21 @@ export const spendCreditForEpisode = mutation({
   },
 });
 
+export const unlockEarlyAccess = mutation({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
+    const episode = await ctx.db.get(episodeId);
+    if (!episode) throw new Error("Episode not found");
+    if (episode.userId && episode.userId !== userId) throw new Error("Episode not found");
+    if (episode.creditSpent === true) return; // already unlocked
+
+    await ctx.db.patch(episodeId, { creditSpent: true });
+  },
+});
+
 export const addCredits = internalMutation({
   args: { userId: v.id("users"), amount: v.number() },
   handler: async (ctx, { userId, amount }) => {

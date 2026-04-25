@@ -61,6 +61,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
   const unlocked = isDemo || episode?.creditSpent === true;
 
   const spendCreditForEpisode = useMutation(api.users.spendCreditForEpisode);
+  const unlockEarlyAccess = useMutation(api.users.unlockEarlyAccess);
   const [spending, setSpending] = useState(false);
 
   const handleDirectUnlock = async () => {
@@ -68,10 +69,23 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
     setSpending(true);
     try {
       await spendCreditForEpisode({ episodeId: episodeId as Id<"episodes"> });
-      // Convex reactivity will update episode.creditSpent → unlocked transitions automatically
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to unlock";
       showToast(msg === "NO_CREDITS" ? "No credits remaining" : "Failed to unlock");
+    } finally {
+      setSpending(false);
+    }
+  };
+
+  const handleEarlyAccess = async () => {
+    if (!episodeId || spending) return;
+    setSpending(true);
+    try {
+      await unlockEarlyAccess({ episodeId: episodeId as Id<"episodes"> });
+      showToast("All outputs unlocked — enjoy early access!");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to unlock";
+      showToast(msg);
     } finally {
       setSpending(false);
     }
@@ -257,7 +271,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
                 Unlock all {SECTIONS.length} outputs for this episode
               </div>
               <div className="unlock-banner-sub">
-                Titles & LinkedIn post are free. {lockedCount} more outputs available with full access.
+                Titles & LinkedIn post are free. Unlock the rest free as an early user — no card needed.
               </div>
             </div>
             {(credits ?? 0) > 0 ? (
@@ -265,14 +279,9 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
                 {spending ? "Unlocking…" : "Use 1 credit to unlock"}
               </button>
             ) : (
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <button className="unlock-btn" onClick={() => onUnlock("single")}>
-                  Unlock · ₹299
-                </button>
-                <button className="unlock-btn" style={{ background: "transparent", border: "1px solid currentColor" }} onClick={() => onUnlock("pack")}>
-                  10 credits · ₹2499
-                </button>
-              </div>
+              <button className="unlock-btn" onClick={handleEarlyAccess} disabled={spending}>
+                {spending ? "Unlocking…" : "🎁 Unlock free — early access"}
+              </button>
             )}
           </div>
         )}
@@ -360,10 +369,9 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
                             {spending ? "Unlocking…" : "Use 1 credit to unlock"}
                           </button>
                         ) : (
-                          <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                            <button className="unlock-btn" onClick={() => onUnlock("single")}>₹299 · 1 credit</button>
-                            <button className="unlock-btn" style={{ background: "transparent", border: "1px solid currentColor" }} onClick={() => onUnlock("pack")}>₹2499 · 10 credits</button>
-                          </div>
+                          <button className="unlock-btn" onClick={handleEarlyAccess} disabled={spending}>
+                            {spending ? "Unlocking…" : "🎁 Unlock free — early access"}
+                          </button>
                         )}
                       </div>
                     )}
