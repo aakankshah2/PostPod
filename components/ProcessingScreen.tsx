@@ -65,7 +65,16 @@ export function ProcessingScreen({ episodeName, episodeId, onComplete, onError }
   // ── REAL MODE: elapsed timer while transcribing ──────────────────────────
   useEffect(() => {
     if (isDemo) return;
-    const id = setInterval(() => setElapsed((e) => e + 1), 1000);
+    const id = setInterval(() => {
+      setElapsed((e) => {
+        // Client-side safety net: if stuck for 12 min, surface an error
+        if (e >= 720) {
+          onErrorRef.current?.("Transcription is taking too long. Please try again.");
+          clearInterval(id);
+        }
+        return e + 1;
+      });
+    }, 1000);
     return () => clearInterval(id);
   }, [isDemo]);
 

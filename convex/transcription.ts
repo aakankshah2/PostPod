@@ -79,17 +79,31 @@ export const startTranscription = action({
 
     let prediction = (await createRes.json()) as ReplicatePrediction;
 
-    // Poll every 3 seconds until Replicate finishes
+    // Poll every 5 seconds, max 120 attempts (10 minutes total)
+    const MAX_POLLS = 120;
+    let polls = 0;
     while (
       prediction.status !== "succeeded" &&
       prediction.status !== "failed" &&
       prediction.status !== "canceled"
     ) {
-      await sleep(3000);
+      if (polls >= MAX_POLLS) {
+        await ctx.runMutation(internal.transcription.setError, {
+          episodeId,
+          error: "Transcription timed out after 10 minutes. Try a shorter file.",
+        });
+        return;
+      }
+      await sleep(5000);
+      polls++;
       const pollRes = await fetch(
         `https://api.replicate.com/v1/predictions/${prediction.id}`,
         { headers: { Authorization: `Bearer ${apiKey}` } },
       );
+      if (!pollRes.ok) {
+        // Non-200 from Replicate — log and retry next cycle
+        continue;
+      }
       prediction = (await pollRes.json()) as ReplicatePrediction;
     }
 
