@@ -58,7 +58,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
     episodeId && !isDemo ? { episodeId: episodeId as Id<"episodes"> } : "skip",
   );
 
-  const unlocked = !isDemo && episode?.creditSpent === true;
+  const unlocked = isDemo || episode?.creditSpent === true;
 
   const spendCreditForEpisode = useMutation(api.users.spendCreditForEpisode);
   const [spending, setSpending] = useState(false);
