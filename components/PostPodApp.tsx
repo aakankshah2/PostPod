@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
 import { Header } from "@/components/Header";
+import { SignInGate } from "@/components/SignInGate";
 import { UploadScreen, type EpisodeSubmitData } from "@/components/UploadScreen";
 import { ProcessingScreen } from "@/components/ProcessingScreen";
 import { OutputsScreen } from "@/components/OutputsScreen";
@@ -20,7 +21,7 @@ export function PostPodApp() {
   const startTranscription = useAction(api.transcription.startTranscription);
   const generateAssets = useAction(api.assetGeneration.generateAssets);
   const unlockEarlyAccess = useMutation(api.users.unlockEarlyAccess);
-  const { isAuthenticated } = useConvexAuth();
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const router = useRouter();
 
   const [screen, setScreen] = useState<Screen>("upload");
@@ -109,6 +110,20 @@ export function PostPodApp() {
     setScreen("upload");
     setEpisode(null);
   };
+
+  // Show nothing while Convex checks auth (avoids flash of sign-in gate for returning users)
+  if (authLoading) return null;
+
+  // Gate: unauthenticated users see sign-in before anything else
+  if (!isAuthenticated) {
+    return (
+      <div className="app">
+        <div className="ambient" />
+        <Header />
+        <SignInGate />
+      </div>
+    );
+  }
 
   return (
     <div className="app">
