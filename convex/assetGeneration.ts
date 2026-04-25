@@ -138,11 +138,20 @@ export const generateAssets = action({
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY not set");
 
+    // Cap transcript at 80,000 chars (~1.5 hrs of speech).
+    // Beyond this, quality doesn't improve and the API call risks timing out.
+    const MAX_CHARS = 80_000;
+    const rawTranscript = episode.transcript;
+    const transcript = rawTranscript.length > MAX_CHARS
+      ? rawTranscript.slice(0, MAX_CHARS) + "\n\n[Transcript truncated — generate assets from the portion above only]"
+      : rawTranscript;
+
     const prompt = GENERATE_ASSETS_PROMPT
-      .replace("{{TRANSCRIPT}}", episode.transcript)
+      .replace("{{TRANSCRIPT}}", transcript)
       .replace("{{EPISODE_TITLE}}", episode.title);
 
-    const client = new Anthropic({ apiKey });
+    // 5-minute timeout — generous for even long transcripts
+    const client = new Anthropic({ apiKey, timeout: 300_000 });
 
     let response: Anthropic.Messages.Message;
     try {
