@@ -91,7 +91,10 @@ export const unlockEarlyAccess = mutation({
     if (episode.userId && episode.userId !== userId) throw new Error("Episode not found");
     if (episode.creditSpent === true) return; // already unlocked
 
-    await ctx.db.patch(episodeId, { creditSpent: true });
+    await ctx.db.patch(episodeId, {
+      creditSpent: true,
+      userId: episode.userId ?? userId,
+    });
   },
 });
 
