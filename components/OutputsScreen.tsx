@@ -141,7 +141,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
 
     if (signInStep === "form") {
       return (
-        <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
           <input
             type="email"
             placeholder="your@email.com"
@@ -156,7 +156,8 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
               padding: "8px 12px",
               fontSize: 13,
               color: "var(--text)",
-              width: 200,
+              flex: "1 1 140px",
+              minWidth: 0,
             }}
           />
           <button className="unlock-btn" onClick={handleInlineSignIn} disabled={signInLoading}>
@@ -321,7 +322,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
   }
 
   return (
-    <div className="screen" style={{ alignItems: "stretch", padding: "24px 32px 80px" }}>
+    <div className="screen" style={{ alignItems: "stretch", padding: "24px clamp(16px, 4vw, 32px) 80px" }}>
       <div className="outputs-wrap">
         <div style={{ marginBottom: 28 }}>
           <button className="back-home" onClick={onHome}>
