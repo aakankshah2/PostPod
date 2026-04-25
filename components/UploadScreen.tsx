@@ -177,6 +177,9 @@ export function UploadScreen({ onSubmit }: Props) {
             onChange={(e) => setEpisodeName(e.target.value)}
             disabled={isUploading}
           />
+          <p style={{ fontSize: 11, color: "var(--text-dim)", margin: "-4px 0 0 2px" }}>
+            * Required — min 4 characters
+          </p>
 
           <div className="upload-row">
             {/* MP3 button */}
