@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { ConvexClientProvider } from "./ConvexClientProvider";
@@ -30,6 +31,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ConvexAuthNextjsServerProvider>
       <html lang="en">
         <body>
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-1VY8ZET5NL"
+            strategy="afterInteractive"
+          />
+          <Script id="ga4-init" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-1VY8ZET5NL');
+            `}
+          </Script>
           <ConvexClientProvider>{children}</ConvexClientProvider>
         </body>
       </html>
