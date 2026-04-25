@@ -146,15 +146,17 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     Resend({
       apiKey: process.env.AUTH_RESEND_KEY,
       from: "PostPod <noreply@postpodcast.in>",
-      async sendVerificationRequest({ identifier: email, url, provider }) {
+      async sendVerificationRequest({ identifier: email, url }) {
+        const apiKey = process.env.AUTH_RESEND_KEY;
+        if (!apiKey) throw new Error("AUTH_RESEND_KEY is not configured");
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${provider.apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: provider.from,
+            from: "PostPod <noreply@postpodcast.in>",
             to: [email],
             subject: "Sign in to PostPod",
             html: magicLinkEmail(url),
