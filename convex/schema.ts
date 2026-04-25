@@ -32,6 +32,7 @@ export default defineSchema({
     ),
     errorMessage: v.optional(v.string()),
     creditSpent: v.optional(v.boolean()),
+    replicatePredictionId: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])

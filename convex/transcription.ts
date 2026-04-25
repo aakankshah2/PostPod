@@ -1,10 +1,13 @@
 import { v } from "convex/values";
-import { action, internalMutation, internalQuery } from "./_generated/server";
+import { action, internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
-// Kicked off by the client immediately after episode creation.
-// Polls Replicate until Whisper finishes, then writes the transcript.
+const REPLICATE_POLL_INTERVAL_MS = 15_000; // 15 seconds between checks
+const MAX_PROCESSING_MINUTES = 40;          // give up after 40 minutes
+
+// Called by the client immediately after episode creation.
+// Submits the job to Replicate and schedules the first status check.
 export const startTranscription = action({
   args: { episodeId: v.id("episodes") },
   handler: async (ctx, { episodeId }) => {
@@ -23,9 +26,7 @@ export const startTranscription = action({
     const apiKey = process.env.REPLICATE_API_TOKEN;
     if (!apiKey) throw new Error("REPLICATE_API_TOKEN not set");
 
-    // Resolve the latest published version of openai/whisper dynamically —
-    // avoids hardcoding a version hash while still using /v1/predictions,
-    // which works for community models (unlike /v1/models/.../predictions).
+    // Fetch latest Whisper version
     const modelRes = await fetch("https://api.replicate.com/v1/models/openai/whisper", {
       headers: { Authorization: `Bearer ${apiKey}` },
     });
@@ -35,7 +36,7 @@ export const startTranscription = action({
         episodeId,
         error: `Could not fetch Whisper model info (${modelRes.status}): ${body}`,
       });
-      throw new Error(`Could not fetch Whisper model info: ${body}`);
+      return;
     }
     const modelData = (await modelRes.json()) as { latest_version?: { id: string } };
     const version = modelData.latest_version?.id;
@@ -44,17 +45,15 @@ export const startTranscription = action({
         episodeId,
         error: "openai/whisper has no published version on Replicate",
       });
-      throw new Error("openai/whisper has no published version on Replicate");
+      return;
     }
 
-    // Prefer: wait=60 asks Replicate to return synchronously for short files;
-    // longer files fall through to the polling loop below.
+    // Submit prediction asynchronously — no Prefer: wait, no polling here
     const createRes = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        Prefer: "wait=60",
       },
       body: JSON.stringify({
         version,
@@ -74,57 +73,119 @@ export const startTranscription = action({
         episodeId,
         error: `Replicate error (${createRes.status}): ${body}`,
       });
-      throw new Error(`Replicate error: ${body}`);
+      return;
     }
 
-    let prediction = (await createRes.json()) as ReplicatePrediction;
+    const prediction = (await createRes.json()) as ReplicatePrediction;
 
-    // Poll every 5 seconds, max 120 attempts (10 minutes total)
-    const MAX_POLLS = 120;
-    let polls = 0;
-    while (
-      prediction.status !== "succeeded" &&
-      prediction.status !== "failed" &&
-      prediction.status !== "canceled"
-    ) {
-      if (polls >= MAX_POLLS) {
-        await ctx.runMutation(internal.transcription.setError, {
-          episodeId,
-          error: "Transcription timed out after 10 minutes. Try a shorter file.",
-        });
-        return;
-      }
-      await sleep(5000);
-      polls++;
-      const pollRes = await fetch(
-        `https://api.replicate.com/v1/predictions/${prediction.id}`,
-        { headers: { Authorization: `Bearer ${apiKey}` } },
-      );
-      if (!pollRes.ok) {
-        // Non-200 from Replicate — log and retry next cycle
-        continue;
-      }
-      prediction = (await pollRes.json()) as ReplicatePrediction;
-    }
-
-    if (prediction.status !== "succeeded") {
-      const err = prediction.error ?? "Transcription failed";
-      await ctx.runMutation(internal.transcription.setError, { episodeId, error: err });
-      throw new Error(err);
-    }
-
-    const transcript =
-      prediction.output?.transcription ?? prediction.output?.text ?? "";
-
-    await ctx.runMutation(internal.transcription.saveTranscript, {
+    // Store the prediction ID so the scheduler can check it
+    await ctx.runMutation(internal.transcription.savePredictionId, {
       episodeId,
-      transcript,
+      predictionId: prediction.id,
     });
 
-    // Immediately kick off asset generation
-    await ctx.scheduler.runAfter(0, api.assetGeneration.generateAssets, { episodeId });
+    // If Replicate already finished synchronously, handle it immediately
+    if (prediction.status === "succeeded") {
+      const transcript =
+        prediction.output?.transcription ?? prediction.output?.text ?? "";
+      await ctx.runMutation(internal.transcription.saveTranscript, { episodeId, transcript });
+      await ctx.scheduler.runAfter(0, api.assetGeneration.generateAssets, { episodeId });
+      return;
+    }
+
+    if (prediction.status === "failed" || prediction.status === "canceled") {
+      await ctx.runMutation(internal.transcription.setError, {
+        episodeId,
+        error: prediction.error ?? "Transcription failed immediately",
+      });
+      return;
+    }
+
+    // Schedule the first status check
+    await ctx.scheduler.runAfter(
+      REPLICATE_POLL_INTERVAL_MS,
+      internal.transcription.checkTranscription,
+      { episodeId },
+    );
   },
 });
+
+// Scheduled internally — checks Replicate once and either completes,
+// errors, or reschedules itself until the job is done.
+export const checkTranscription = internalAction({
+  args: { episodeId: v.id("episodes") },
+  handler: async (ctx, { episodeId }) => {
+    const episode = await ctx.runQuery(internal.transcription.getEpisodeInternal, { episodeId });
+    if (!episode) return;
+
+    // Already resolved (completed, errored, or a duplicate check arrived late)
+    if (episode.status !== "transcribing") return;
+
+    // Safety: give up after MAX_PROCESSING_MINUTES
+    const ageMinutes = (Date.now() - episode.createdAt) / 1000 / 60;
+    if (ageMinutes > MAX_PROCESSING_MINUTES) {
+      await ctx.runMutation(internal.transcription.setError, {
+        episodeId,
+        error: `Transcription timed out after ${MAX_PROCESSING_MINUTES} minutes. Try a shorter file or upload a transcript instead.`,
+      });
+      return;
+    }
+
+    const predictionId = episode.replicatePredictionId;
+    if (!predictionId) {
+      await ctx.runMutation(internal.transcription.setError, {
+        episodeId,
+        error: "No Replicate prediction ID found — transcription may not have started.",
+      });
+      return;
+    }
+
+    const apiKey = process.env.REPLICATE_API_TOKEN;
+    if (!apiKey) return;
+
+    const pollRes = await fetch(
+      `https://api.replicate.com/v1/predictions/${predictionId}`,
+      { headers: { Authorization: `Bearer ${apiKey}` } },
+    );
+
+    if (!pollRes.ok) {
+      // Transient Replicate error — reschedule and try again
+      await ctx.scheduler.runAfter(
+        REPLICATE_POLL_INTERVAL_MS,
+        internal.transcription.checkTranscription,
+        { episodeId },
+      );
+      return;
+    }
+
+    const prediction = (await pollRes.json()) as ReplicatePrediction;
+
+    if (prediction.status === "succeeded") {
+      const transcript =
+        prediction.output?.transcription ?? prediction.output?.text ?? "";
+      await ctx.runMutation(internal.transcription.saveTranscript, { episodeId, transcript });
+      await ctx.scheduler.runAfter(0, api.assetGeneration.generateAssets, { episodeId });
+      return;
+    }
+
+    if (prediction.status === "failed" || prediction.status === "canceled") {
+      await ctx.runMutation(internal.transcription.setError, {
+        episodeId,
+        error: prediction.error ?? "Transcription failed on Replicate",
+      });
+      return;
+    }
+
+    // Still running — schedule another check
+    await ctx.scheduler.runAfter(
+      REPLICATE_POLL_INTERVAL_MS,
+      internal.transcription.checkTranscription,
+      { episodeId },
+    );
+  },
+});
+
+// ── Internal queries & mutations ─────────────────────────────────────────────
 
 export const getEpisodeInternal = internalQuery({
   args: { episodeId: v.id("episodes") },
@@ -138,6 +199,13 @@ export const setStatus = internalMutation({
   },
   handler: async (ctx, { episodeId, status }) => {
     await ctx.db.patch(episodeId, { status });
+  },
+});
+
+export const savePredictionId = internalMutation({
+  args: { episodeId: v.id("episodes"), predictionId: v.string() },
+  handler: async (ctx, { episodeId, predictionId }) => {
+    await ctx.db.patch(episodeId, { replicatePredictionId: predictionId });
   },
 });
 
@@ -161,7 +229,3 @@ type ReplicatePrediction = {
   output?: { transcription?: string; text?: string };
   error?: string;
 };
-
-function sleep(ms: number) {
-  return new Promise<void>((r) => setTimeout(r, ms));
-}
