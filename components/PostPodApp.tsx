@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useAction } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { useConvexAuth } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@/convex/_generated/api";
@@ -19,6 +19,7 @@ type Screen = "upload" | "processing" | "outputs";
 export function PostPodApp() {
   const startTranscription = useAction(api.transcription.startTranscription);
   const generateAssets = useAction(api.assetGeneration.generateAssets);
+  const unlockEarlyAccess = useMutation(api.users.unlockEarlyAccess);
   const { isAuthenticated } = useConvexAuth();
   const router = useRouter();
 
@@ -42,6 +43,25 @@ export function PostPodApp() {
       localStorage.removeItem("postpod_episode");
     }
   }, []);
+
+  // After sign-in redirect with ?autoUnlock=true, fire unlock automatically
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("autoUnlock") !== "true") return;
+
+    // Clean the URL immediately so a refresh doesn't re-trigger
+    window.history.replaceState({}, "", "/");
+
+    try {
+      const saved = localStorage.getItem("postpod_episode");
+      if (!saved) return;
+      const parsed = JSON.parse(saved) as EpisodeSubmitData;
+      if (parsed.episodeId && !parsed.isDemo) {
+        void unlockEarlyAccess({ episodeId: parsed.episodeId as Id<"episodes"> });
+      }
+    } catch {}
+  }, [isAuthenticated, unlockEarlyAccess]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);

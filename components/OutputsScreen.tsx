@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useConvexAuth } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-// credits query fires once on mount; Convex reactivity updates it after payment
 import { DEMO_OUTPUTS, type AssetData } from "@/lib/demoData";
 import {
   IconArrowLeft,
@@ -51,6 +51,26 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
   const [openIds, setOpenIds] = useState<Set<SectionId>>(new Set(["titles", "linkedin"]));
   const [copiedId, setCopiedId] = useState<SectionId | null>(null);
 
+  const { isAuthenticated } = useConvexAuth();
+  const { signIn } = useAuthActions();
+
+  const [signInStep, setSignInStep] = useState<"idle" | "form" | "sent">("idle");
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInLoading, setSignInLoading] = useState(false);
+
+  const handleInlineSignIn = async () => {
+    if (!signInEmail || signInLoading) return;
+    setSignInLoading(true);
+    try {
+      await signIn("resend", { email: signInEmail, redirectTo: "/?autoUnlock=true" });
+      setSignInStep("sent");
+    } catch {
+      showToast("Couldn't send the link — check your email and try again.");
+    } finally {
+      setSignInLoading(false);
+    }
+  };
+
   const credits = useQuery(api.users.getMyCredits);
 
   const episode = useQuery(
@@ -89,6 +109,69 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
     } finally {
       setSpending(false);
     }
+  };
+
+  const renderUnlockAction = () => {
+    // Authenticated with credits
+    if (isAuthenticated && (credits ?? 0) > 0) {
+      return (
+        <button className="unlock-btn" onClick={handleDirectUnlock} disabled={spending}>
+          {spending ? "Unlocking…" : "Use 1 credit to unlock"}
+        </button>
+      );
+    }
+
+    // Authenticated, no credits — early access
+    if (isAuthenticated) {
+      return (
+        <button className="unlock-btn" onClick={handleEarlyAccess} disabled={spending}>
+          {spending ? "Unlocking…" : "🎁 Unlock free — early access"}
+        </button>
+      );
+    }
+
+    // Not authenticated — inline email form
+    if (signInStep === "sent") {
+      return (
+        <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
+          ✉ Check your inbox — click the link to unlock
+        </div>
+      );
+    }
+
+    if (signInStep === "form") {
+      return (
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+          <input
+            type="email"
+            placeholder="your@email.com"
+            value={signInEmail}
+            onChange={(e) => setSignInEmail(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleInlineSignIn()}
+            autoFocus
+            style={{
+              background: "var(--bg-input)",
+              border: "1px solid var(--border-soft)",
+              borderRadius: "var(--radius)",
+              padding: "8px 12px",
+              fontSize: 13,
+              color: "var(--text)",
+              width: 200,
+            }}
+          />
+          <button className="unlock-btn" onClick={handleInlineSignIn} disabled={signInLoading}>
+            {signInLoading ? "Sending…" : "Send link →"}
+          </button>
+        </div>
+      );
+    }
+
+    // idle — show the CTA
+    return (
+      <button className="unlock-btn" onClick={() => setSignInStep("form")}>
+        🎁 Unlock free — early access
+      </button>
+    );
   };
 
   const rawAssets = useQuery(
@@ -274,15 +357,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
                 Titles & LinkedIn post are free. Unlock the rest free as an early user — no card needed.
               </div>
             </div>
-            {(credits ?? 0) > 0 ? (
-              <button className="unlock-btn" onClick={handleDirectUnlock} disabled={spending}>
-                {spending ? "Unlocking…" : "Use 1 credit to unlock"}
-              </button>
-            ) : (
-              <button className="unlock-btn" onClick={handleEarlyAccess} disabled={spending}>
-                {spending ? "Unlocking…" : "🎁 Unlock free — early access"}
-              </button>
-            )}
+            {renderUnlockAction()}
           </div>
         )}
 
@@ -364,15 +439,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
                         <div className="lock-overlay-sub">
                           One-time credit unlocks chapters, pull quotes, and show notes for this episode.
                         </div>
-                        {(credits ?? 0) > 0 ? (
-                          <button className="unlock-btn" onClick={handleDirectUnlock} disabled={spending}>
-                            {spending ? "Unlocking…" : "Use 1 credit to unlock"}
-                          </button>
-                        ) : (
-                          <button className="unlock-btn" onClick={handleEarlyAccess} disabled={spending}>
-                            {spending ? "Unlocking…" : "🎁 Unlock free — early access"}
-                          </button>
-                        )}
+                        {renderUnlockAction()}
                       </div>
                     )}
                   </div>
