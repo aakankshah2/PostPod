@@ -2,6 +2,10 @@
 
 Turn a raw podcast episode into publish-ready assets in under a minute.
 
+**Live:**
+- [postpodcast.in](https://postpodcast.in) — the full app (upload → transcribe → generate)
+- [postpod-aakankshah2s-projects.vercel.app](https://postpod-aakankshah2s-projects.vercel.app) — waitlist landing page
+
 ---
 
 ## Two URLs, one codebase
