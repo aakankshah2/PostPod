@@ -16,7 +16,7 @@ EPISODE TITLE (host-provided, for context only):
 
 Your output must be a JSON object matching the schema exactly. Follow these rules for each asset:
 
-1. TITLES (generate exactly 5 options):
+1. TITLES (generate exactly 5 options) + HOOK SCORES:
 Write titles that are hooky and make someone want to click, but honest — never clickbait that the episode doesn't deliver on. Match the tone of the conversation itself: if it's intellectual, titles should feel intellectual; if it's playful, lean playful. Mix formats across the 5:
 - One that's a specific claim or insight from the episode
 - One that's a provocative question the episode answers
@@ -24,6 +24,13 @@ Write titles that are hooky and make someone want to click, but honest — never
 - One that's a numbered/listicle feel if content supports it
 - One wildcard: a sharp phrase pulled or adapted from the guest's actual words
 Each title: 8-14 words ideal, never exceed 70 characters.
+
+After writing the 5 titles, score each one 0–100 for hookability: how likely is a podcast listener scrolling their feed to click this, while it remaining honest to the content? Score on four dimensions equally weighted:
+- Specificity: makes a concrete claim, not a vague promise
+- Curiosity gap: creates genuine want-to-know-more without misleading
+- Clarity: immediately understandable to the target audience
+- Authenticity: feels true to the episode, avoids hype words
+Return the scores in hookScores[] in the same order as titles[].
 
 2. CHAPTERS:
 Break the episode into 5-12 chapters based on actual topic shifts in the transcript, not arbitrary time windows. Each chapter:
@@ -78,6 +85,11 @@ const ASSETS_TOOL: Anthropic.Messages.Tool = {
         items: { type: "string" },
         description: "Exactly 5 title options.",
       },
+      hookScores: {
+        type: "array",
+        items: { type: "integer", minimum: 0, maximum: 100 },
+        description: "Hook score 0-100 for each title in the same order.",
+      },
       chapters: {
         type: "array",
         items: {
@@ -104,6 +116,7 @@ const ASSETS_TOOL: Anthropic.Messages.Tool = {
 
 type GeneratedAssets = {
   titles: string[];
+  hookScores?: number[];
   chapters: Array<{ timestamp: string; title: string; summary: string }>;
   pullQuotes: string[];
   linkedInPost: string;
@@ -162,6 +175,7 @@ export const generateAssets = action({
     await ctx.runMutation(internal.assets.saveAssets, {
       episodeId,
       titles: assets.titles,
+      hookScores: assets.hookScores,
       chapters: assets.chapters,
       pullQuotes: assets.pullQuotes,
       linkedInPost: assets.linkedInPost,

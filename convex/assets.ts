@@ -6,6 +6,7 @@ export const saveAssets = internalMutation({
   args: {
     episodeId: v.id("episodes"),
     titles: v.array(v.string()),
+    hookScores: v.optional(v.array(v.number())),
     chapters: v.array(
       v.object({ timestamp: v.string(), title: v.string(), summary: v.string() }),
     ),

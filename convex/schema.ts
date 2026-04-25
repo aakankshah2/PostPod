@@ -42,6 +42,7 @@ export default defineSchema({
   assets: defineTable({
     episodeId: v.id("episodes"),
     titles: v.array(v.string()),
+    hookScores: v.optional(v.array(v.number())),
     chapters: v.array(
       v.object({
         timestamp: v.string(),

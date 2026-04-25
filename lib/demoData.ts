@@ -1,6 +1,7 @@
 // Shape must stay in sync with the Convex assets table schema.
 export type AssetData = {
   titles: string[];
+  hookScores?: number[];
   chapters: Array<{ timestamp: string; title: string; summary: string }>;
   pullQuotes: string[];
   linkedInPost: string;
@@ -15,6 +16,7 @@ export const DEMO_OUTPUTS: AssetData = {
     "5 Mental Models from Naval That Will Change How You Work",
     "\"Play Long Games With Long People\" — Naval Ravikant",
   ],
+  hookScores: [91, 88, 79, 83, 95],
 
   chapters: [
     { timestamp: "00:00", title: "Wealth vs. money",           summary: "Naval explains why wealth is assets that earn while you sleep, not a paycheck." },

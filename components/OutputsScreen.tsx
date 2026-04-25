@@ -39,7 +39,7 @@ const SECTIONS = [
 
 type SectionId = typeof SECTIONS[number]["id"];
 
-function deterministicScore(title: string): number {
+function fallbackScore(title: string): number {
   let h = 0;
   for (let i = 0; i < title.length; i++) {
     h = ((h << 5) - h + title.charCodeAt(i)) | 0;
@@ -259,7 +259,7 @@ export function OutputsScreen({ episodeId, isDemo, episodeName, onUnlock, onHome
               <div className="title-item" key={i}>
                 <div className="title-rank">0{i + 1}</div>
                 <div className="title-text">{t}</div>
-                <div className="title-score">{deterministicScore(t)}/100 hook</div>
+                <div className="title-score">{assets.hookScores?.[i] ?? fallbackScore(t)}/100 hook</div>
               </div>
             ))}
           </div>
